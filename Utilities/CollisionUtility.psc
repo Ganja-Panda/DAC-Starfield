@@ -90,7 +90,3 @@ Function RunCollisionUtility() Global
 
     Debug.Notification("DAC: CollisionUtility run complete.")
 EndFunction
-
-Event OnInit()
-    RunCollisionUtility()
-EndEvent
