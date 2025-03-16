@@ -1,4 +1,4 @@
-ScriptName DAC:Quest:PlayerLocationChangeHandler Extends ReferenceAlias
+ScriptName DAC:Quests:PlayerLocationChangeHandler Extends ReferenceAlias
 
 Quest Property DAC_Quest Auto
 RefCollectionAlias Property FindNPCs Auto
@@ -9,7 +9,7 @@ Event OnEnterShipInterior(ObjectReference akShip)
     Debug.Trace("DAC: Entered ship. Updating alias.")
     UpdateFinderAlias()
     Utility.Wait(1.0) ; Wait for the alias to update
-    (DAC_Quest as DAC:Quest:DisableActorCollisionOnPlayerShip).DisableCollisionForShipNPCs()
+    (DAC_Quest as DAC:Quests:DisableActorCollisionOnPlayerShip).DisableCollisionForShipNPCs()
 EndEvent
 
 Event OnExitShipInterior(ObjectReference akShip)
@@ -17,7 +17,7 @@ Event OnExitShipInterior(ObjectReference akShip)
     Debug.Trace("DAC: Exited ship. Updating alias.")
     UpdateFinderAlias()
     Utility.Wait(1.0) ; Wait for the alias to update
-    (DAC_Quest as DAC:Quest:DisableActorCollisionOnPlayerShip).EnableCollisionForAllNPCs()
+    (DAC_Quest as DAC:Quests:DisableActorCollisionOnPlayerShip).EnableCollisionForAllNPCs()
 EndEvent
 
 Function UpdateFinderAlias()

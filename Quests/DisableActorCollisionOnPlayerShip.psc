@@ -1,4 +1,4 @@
-ScriptName DAC:Quest:DisableActorCollisionOnPlayerShip Extends Quest
+ScriptName DAC:Quests:DisableActorCollisionOnPlayerShip Extends Quest
 
 RefCollectionAlias Property FindNPCs Auto ; Uses the alias already set in CK
 
