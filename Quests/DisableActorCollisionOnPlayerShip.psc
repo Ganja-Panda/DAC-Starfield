@@ -35,7 +35,11 @@ Function DisableCollisionForShipNPCs()
     Int i = 0
     While i < foundCount
         Actor targetActor = FindNPCs.GetAt(i) as Actor
-        If targetActor && targetActor != Game.GetPlayer() && targetActor.Is3DLoaded()
+        If targetActor && targetActor != Game.GetPlayer()
+            ; Wait for the actor to load
+            While !targetActor.Is3DLoaded()
+                Utility.Wait(0.5)
+            EndWhile
             CassiopeiaPapyrusExtender.DisableCollision(targetActor, True)
             Debug.Notification("DAC: Collision disabled for " + targetActor)
             CassiopeiaPapyrusExtender.UpdateReference3D(targetActor)
@@ -50,11 +54,15 @@ Function EnableCollisionForAllNPCs()
         Return
     EndIf
     Int foundCount = FindNPCs.GetCount()
-    Debug.Notification("DAC: Enabling collision for " + foundCount + " NPCs inside the ship.")
+    Debug.Notification("DAC: Enabling collision for " + foundCount + " NPCs outside the ship.")
     Int i = 0
     While i < foundCount
         Actor targetActor = FindNPCs.GetAt(i) as Actor
-        If targetActor && targetActor != Game.GetPlayer() && targetActor.Is3DLoaded()
+        If targetActor && targetActor != Game.GetPlayer()
+             ; Wait for the actor to load
+            While !targetActor.Is3DLoaded()
+                Utility.Wait(0.5)
+            EndWhile
             CassiopeiaPapyrusExtender.DisableCollision(targetActor, False)
             Debug.Notification("DAC: Collision enabled for " + targetActor)
             
