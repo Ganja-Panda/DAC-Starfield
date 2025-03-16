@@ -21,18 +21,43 @@ GlobalVariable Property DAC_UpdateGlobal Auto ; Required global variable for ali
 Event OnEnterShipInterior(ObjectReference akShip)
     Debug.Notification("DAC: Entered ship: " + akShip)
     Debug.Trace("DAC: Entered ship. Updating alias.")
+    
     UpdateFinderAlias()
-    Utility.Wait(1.0) ; Wait for the alias to update
-    (DAC_Quest as DAC:Quests:DisableActorCollisionOnPlayerShip).DisableCollision()
+    Utility.Wait(2.0) ; Ensure NPC list is updated before applying collision changes
+    
+    DAC:Quests:DisableActorCollisionOnPlayerShip CollisionScript = DAC_Quest as DAC:Quests:DisableActorCollisionOnPlayerShip
+    If CollisionScript
+        Int i = 0
+        While i < FindNPCs.GetSize()
+            Actor CrewMember = FindNPCs.GetAt(i) as Actor
+            If CrewMember
+                CollisionScript.DisableCollision(CrewMember)
+            EndIf
+            i += 1
+        EndWhile
+    EndIf
 EndEvent
 
 Event OnExitShipInterior(ObjectReference akShip)
     Debug.Notification("DAC: Exited ship: " + akShip)
     Debug.Trace("DAC: Exited ship. Updating alias.")
+    
     UpdateFinderAlias()
-    Utility.Wait(1.0) ; Wait for the alias to update
-    (DAC_Quest as DAC:Quests:DisableActorCollisionOnPlayerShip).EnableCollision()
+    Utility.Wait(2.0) ; Ensure NPC list is updated before applying collision changes
+    
+    DAC:Quests:DisableActorCollisionOnPlayerShip CollisionScript = DAC_Quest as DAC:Quests:DisableActorCollisionOnPlayerShip
+    If CollisionScript
+        Int i = 0
+        While i < FindNPCs.GetSize()
+            Actor CrewMember = FindNPCs.GetAt(i) as Actor
+            If CrewMember
+                CollisionScript.EnableCollision(CrewMember)
+            EndIf
+            i += 1
+        EndWhile
+    EndIf
 EndEvent
+
 
 ;----------------------------
 ; UpdateFinderAlias Function

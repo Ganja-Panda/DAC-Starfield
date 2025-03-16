@@ -17,6 +17,7 @@ Keyword Property Crew_CrewTypeCompanion Auto    ; Marks companion-type crew NPCs
 Keyword Property Crew_CrewTypeElite Auto    ; Marks elite crew NPCs
 Keyword Property Crew_CrewTypeGeneric Auto    ; Marks generic crew NPCs
 Keyword Property Crew_CrewTypeGeneric_NoflavorDialogue Auto    ; Marks generic crew NPCs without flavor dialogue
+GlobalVariable Property DAC_UpdateGlobal Auto ; Required global variable for alias update
 
 ;======================================================================
 ; EVENT HANDLER
@@ -44,7 +45,24 @@ Event OnInit()
 
     Debug.Notification("DAC: Initialized. Checking collision states...")
     UpdateCollisionStates()
+    StartMonitoringGlobal() ; Start checking DAC_UpdateGlobal
 EndEvent
+
+;======================================================================
+; FUNCTION: Poll DAC_UpdateGlobal
+;======================================================================
+Function StartMonitoringGlobal()
+    Float lastValue = DAC_UpdateGlobal.GetValue()
+    While Self.IsRunning()
+        Float currentValue = DAC_UpdateGlobal.GetValue()
+        If currentValue != lastValue
+            Debug.Notification("DAC: Global changed, updating collision states.")
+            UpdateCollisionStates()
+            lastValue = currentValue
+        EndIf
+        Utility.Wait(1.0) ; Adjust polling interval as needed
+    EndWhile
+EndFunction
 
 ;======================================================================
 ; FUNCTION: PopulateCrewList
