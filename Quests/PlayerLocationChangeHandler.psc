@@ -1,9 +1,8 @@
 ;======================================================================
 ; Script: DAC:Quests:PlayerLocationChangeHandler
 ; Description: Handles player location changes for ship interiors.
-;              Updates the FormList (FindNPCs) and triggers collision
-;              updates in the main collision quest.
-;              Must be attached to a player's reference alias.
+;              Updates the ReferenceAliasCollection and triggers collision
+;              updates in the main collision alias.
 ;======================================================================
 
 ScriptName DAC:Quests:PlayerLocationChangeHandler Extends ReferenceAlias
@@ -11,7 +10,7 @@ ScriptName DAC:Quests:PlayerLocationChangeHandler Extends ReferenceAlias
 ;----------------------------
 ; Property Definitions
 ;----------------------------
-Quest Property DAC_Quest Auto
+DAC:Quests:DisableActorCollisionOnPlayerShip Property DAC_CollisionAlias Auto
 FormList Property FindNPCs Auto
 GlobalVariable Property DAC_UpdateGlobal Auto ; Required global variable for alias update
 
@@ -21,17 +20,16 @@ GlobalVariable Property DAC_UpdateGlobal Auto ; Required global variable for ali
 Event OnEnterShipInterior(ObjectReference akShip)
     Debug.Notification("DAC: Entered ship: " + akShip)
     Debug.Trace("DAC: Entered ship. Updating alias.")
-    
+
     UpdateFinderAlias()
     Utility.Wait(2.0) ; Ensure NPC list is updated before applying collision changes
-    
-    DAC:Quests:DisableActorCollisionOnPlayerShip CollisionScript = DAC_Quest as DAC:Quests:DisableActorCollisionOnPlayerShip
-    If CollisionScript
+
+    If DAC_CollisionAlias
         Int i = 0
         While i < FindNPCs.GetSize()
             Actor CrewMember = FindNPCs.GetAt(i) as Actor
             If CrewMember
-                CollisionScript.DisableCollision(CrewMember)
+                DAC_CollisionAlias.DisableCollision(CrewMember)
             EndIf
             i += 1
         EndWhile
@@ -41,23 +39,21 @@ EndEvent
 Event OnExitShipInterior(ObjectReference akShip)
     Debug.Notification("DAC: Exited ship: " + akShip)
     Debug.Trace("DAC: Exited ship. Updating alias.")
-    
+
     UpdateFinderAlias()
     Utility.Wait(2.0) ; Ensure NPC list is updated before applying collision changes
-    
-    DAC:Quests:DisableActorCollisionOnPlayerShip CollisionScript = DAC_Quest as DAC:Quests:DisableActorCollisionOnPlayerShip
-    If CollisionScript
+
+    If DAC_CollisionAlias
         Int i = 0
         While i < FindNPCs.GetSize()
             Actor CrewMember = FindNPCs.GetAt(i) as Actor
             If CrewMember
-                CollisionScript.EnableCollision(CrewMember)
+                DAC_CollisionAlias.EnableCollision(CrewMember)
             EndIf
             i += 1
         EndWhile
     EndIf
 EndEvent
-
 
 ;----------------------------
 ; UpdateFinderAlias Function
