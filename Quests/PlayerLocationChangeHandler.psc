@@ -1,7 +1,7 @@
 ;======================================================================
 ; Script: DAC:Quests:PlayerLocationChangeHandler
 ; Description: Handles player location changes for ship interiors.
-;              Updates the ReferenceAliasCollection and triggers collision
+;              Updates the ReferenceAlias and triggers collision
 ;              updates in the main collision alias.
 ;======================================================================
 
@@ -11,47 +11,42 @@ ScriptName DAC:Quests:PlayerLocationChangeHandler Extends ReferenceAlias
 ; Property Definitions
 ;----------------------------
 DAC:Quests:DisableActorCollisionOnPlayerShip Property DAC_CollisionAlias Auto
-FormList Property FindNPCs Auto
 GlobalVariable Property DAC_UpdateGlobal Auto ; Required global variable for alias update
 
 ;----------------------------
 ; Event Handlers
 ;----------------------------
 Event OnEnterShipInterior(ObjectReference akShip)
-    Debug.Notification("DAC: Entered ship: " + akShip)
-    Debug.Trace("DAC: Entered ship. Updating alias.")
+    Debug.Notification("DAC: Entered ship. Updating alias.")
 
     UpdateFinderAlias()
-    Utility.Wait(2.0) ; Ensure NPC list is updated before applying collision changes
+    Utility.Wait(2.0) ; Ensure alias updates before applying collision changes
 
     If DAC_CollisionAlias
-        Int i = 0
-        While i < FindNPCs.GetSize()
-            Actor CrewMember = FindNPCs.GetAt(i) as Actor
-            If CrewMember
-                DAC_CollisionAlias.DisableCollision(CrewMember)
-            EndIf
-            i += 1
-        EndWhile
+        Actor PlayerRef = Self.GetActorReference()  ; Ensure we get the player
+        If PlayerRef
+            Debug.Notification("DAC: Disabling player collision.")
+            DAC_CollisionAlias.DisableCollision(PlayerRef)
+        Else
+            Debug.Notification("DAC ERROR: Player Reference is invalid.")
+        EndIf
     EndIf
 EndEvent
 
 Event OnExitShipInterior(ObjectReference akShip)
-    Debug.Notification("DAC: Exited ship: " + akShip)
-    Debug.Trace("DAC: Exited ship. Updating alias.")
+    Debug.Notification("DAC: Exited ship. Updating alias.")
 
     UpdateFinderAlias()
-    Utility.Wait(2.0) ; Ensure NPC list is updated before applying collision changes
+    Utility.Wait(2.0) ; Ensure alias updates before applying collision changes
 
     If DAC_CollisionAlias
-        Int i = 0
-        While i < FindNPCs.GetSize()
-            Actor CrewMember = FindNPCs.GetAt(i) as Actor
-            If CrewMember
-                DAC_CollisionAlias.EnableCollision(CrewMember)
-            EndIf
-            i += 1
-        EndWhile
+        Actor PlayerRef = Self.GetActorReference()  ; Ensure we get the player
+        If PlayerRef
+            Debug.Notification("DAC: Enabling player collision.")
+            DAC_CollisionAlias.EnableCollision(PlayerRef)
+        Else
+            Debug.Notification("DAC ERROR: Player Reference is invalid.")
+        EndIf
     EndIf
 EndEvent
 
@@ -59,34 +54,28 @@ EndEvent
 ; UpdateFinderAlias Function
 ;----------------------------
 Function UpdateFinderAlias()
-    ; Check that the FormList is valid.
-    If FindNPCs == None
-        Debug.Notification("DAC: ERROR - FindNPCs alias is None!")
+    ; Ensure the alias is valid.
+    Actor PlayerRef = Self.GetActorReference()
+    If PlayerRef == None
+        Debug.Notification("DAC ERROR: Player Reference Alias is None.")
         Return
     EndIf
-    Debug.Trace("DAC: Updating FindNPCs FormList.")
+    Debug.Notification("DAC: Updating Player Reference Alias.")
 
-    ; Remove all NPCs from the FormList.
-    While FindNPCs.GetSize() > 0
-        FindNPCs.RemoveAddedForm(FindNPCs.GetAt(0))
-    EndWhile
-
-    ; Check that the global variable is valid.
+    ; Ensure the global variable is valid.
     If DAC_UpdateGlobal == None
-        Debug.Notification("DAC: ERROR - DAC_UpdateGlobal is not set!")
+        Debug.Notification("DAC ERROR: DAC_UpdateGlobal is not set.")
         Return
     EndIf
 
     ; Toggle the global variable between 0 and 1.
     Float currentValue = DAC_UpdateGlobal.GetValue()
-    Debug.Trace("DAC: Current value of DAC_UpdateGlobal: " + currentValue)
+    Debug.Notification("DAC: Current DAC_UpdateGlobal: " + currentValue)
     DAC_UpdateGlobal.SetValue(1.0 - currentValue)
-    Debug.Trace("DAC: New value of DAC_UpdateGlobal: " + DAC_UpdateGlobal.GetValue())
+    Debug.Notification("DAC: New DAC_UpdateGlobal: " + DAC_UpdateGlobal.GetValue())
 
     ; Trigger alias update via the owning quest.
     Self.GetOwningQuest().UpdateCurrentInstanceGlobal(DAC_UpdateGlobal)
 
-    ; Report the updated count.
-    Int foundCount = FindNPCs.GetSize()
-    Debug.Notification("DAC: Finder NPC Collection updated. " + foundCount + " NPCs in alias.")
+    Debug.Notification("DAC: Player Reference Alias updated.")
 EndFunction
