@@ -5,7 +5,7 @@
 ;              updates in the main collision quest.
 ;======================================================================
 
-ScriptName DAC:Quests:PlayerLocationChangeHandler Extends Quest
+ScriptName DAC:Quests:PlayerLocationChangeHandler Extends ReferenceAlias
 
 ;----------------------------
 ; Property Definitions
