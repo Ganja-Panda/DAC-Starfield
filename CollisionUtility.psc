@@ -9,7 +9,7 @@
 ;              4) Iterates over the FormList to enable collision on the NPCs.
 ;======================================================================
 
-ScriptName DAC:Utilities:CollisionUtility Extends ScriptObject
+ScriptName DAC:CollisionUtility Extends ScriptObject
 
 Function RunCollisionUtility() Global
     ;---------------------------------------------------
