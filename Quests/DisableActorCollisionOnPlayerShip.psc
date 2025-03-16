@@ -7,47 +7,37 @@
 
 ScriptName DAC:Quests:DisableActorCollisionOnPlayerShip Extends Quest
 
-;----------------------------
-; Property Definitions
-;----------------------------
-; FindNPCs:
-;   - Type: FormList
-;   - Purpose: Holds NPC base forms for collision handling.
-FormList Property FindNPCs Auto
+;======================================================================
+; PROPERTY DEFINITIONS
+;======================================================================
 
-; Crew_Elite_Vasco:
-;   - Type: ActorBase
-;   - Purpose: Special NPC always included in checks.
-ActorBase Property Crew_Elite_Vasco Auto
+FormList Property FindNPCs Auto    ; Holds NPCs whose collision will be toggled
+ActorBase Property Crew_Elite_Vasco Auto    ; Special NPC always included in collision handling
+Keyword Property Crew_CrewTypeCompanion Auto    ; Marks companion-type crew NPCs
+Keyword Property Crew_CrewTypeElite Auto    ; Marks elite crew NPCs
+Keyword Property Crew_CrewTypeGeneric Auto    ; Marks generic crew NPCs
+Keyword Property Crew_CrewTypeGeneric_NoflavorDialogue Auto    ; Marks generic crew NPCs without flavor dialogue
 
-; Crew_CrewTypeCompanion:
-;   - Type: Keyword
-;   - Purpose: Marks companion-type crew NPCs.
-Keyword Property Crew_CrewTypeCompanion Auto
-
-; Crew_CrewTypeElite:
-;   - Type: Keyword
-;   - Purpose: Marks elite crew NPCs.
-Keyword Property Crew_CrewTypeElite Auto
-
-; Crew_CrewTypeGeneric:
-;   - Type: Keyword
-;   - Purpose: Marks generic crew NPCs.
-Keyword Property Crew_CrewTypeGeneric Auto
-
-; Crew_CrewTypeGeneric_NoflavorDialogue:
-;   - Type: Keyword
-;   - Purpose: Marks generic crew NPCs without flavor dialogue.
-Keyword Property Crew_CrewTypeGeneric_NoflavorDialogue Auto
-
-;----------------------------
+;======================================================================
 ; EVENT HANDLER
-;----------------------------
+;======================================================================
 Event OnInit()
+    Debug.Notification("DAC: Script initializing...")
+    Debug.Trace("DAC: Waiting for player 3D load...")
+
     ; Wait until the player is fully loaded in 3D.
     While !Game.GetPlayer().Is3DLoaded()
         Utility.Wait(1.0)
     EndWhile
+
+    Utility.Wait(3.0) ; Ensure other actors are loaded
+
+    ; Ensure FindNPCs is assigned
+    If FindNPCs == None
+        Debug.Notification("DAC: ERROR - FindNPCs FormList is None!")
+        Debug.Trace("DAC: ERROR - FindNPCs FormList is not assigned in CK.")
+        Return
+    EndIf
 
     ; Populate the FormList dynamically.
     PopulateCrewList()
@@ -56,127 +46,123 @@ Event OnInit()
     CheckAndToggleCollision()
 EndEvent
 
-;----------------------------
-; 1) DYNAMIC FORM LIST POPULATION
-;----------------------------
+;======================================================================
+; FUNCTION: PopulateCrewList
+; Description: Retrieves all currently loaded NPC references and filters
+;              them based on predefined criteria before adding them to FindNPCs.
+;======================================================================
 Function PopulateCrewList()
-    ; Clear any existing entries.
+    Debug.Trace("DAC: Fetching loaded references...")
+    
+    ; Get all currently loaded references using the Papyrus Extender.
+    ObjectReference[] loadedRefs = CassiopeiaPapyrusExtender.GetLoadedReferences()
+    
+    If loadedRefs == None || loadedRefs.Length == 0
+        Debug.Notification("DAC: ERROR - No loaded references returned!")
+        Debug.Trace("DAC: ERROR - GetLoadedReferences() returned no data.")
+        Return
+    EndIf
+
+    Debug.Trace("DAC: Retrieved " + loadedRefs.Length + " references.")
+    
+    ; Clear any existing entries in the FormList.
     While FindNPCs.GetSize() > 0
+        Debug.Trace("DAC: Removing " + FindNPCs.GetAt(0))
         FindNPCs.RemoveAddedForm(FindNPCs.GetAt(0))
     EndWhile
 
-    ; Get all currently loaded references using the Papyrus Extender.
-    ObjectReference[] loadedRefs = CassiopeiaPapyrusExtender.GetLoadedReferences()
-    If loadedRefs
-        Int total = loadedRefs.Length
-        Int i = 0
-        While i < total
-            Actor candidate = loadedRefs[i] as Actor
-
-            ; Skip null or disabled actors.
-            If candidate && !candidate.IsDisabled()
-                ; Check if candidate is the player or Crew_Elite_Vasco.
+    ; Iterate over all loaded references and filter actors based on criteria.
+    Int total = loadedRefs.Length
+    Int i = 0
+    While i < total
+        Actor candidate = loadedRefs[i] as Actor
+        If candidate
+            Debug.Trace("DAC: Evaluating candidate: " + candidate)
+            
+            If candidate.IsDisabled()
+                Debug.Trace("DAC: Skipping disabled actor: " + candidate)
+            Else
                 Bool isSpecialActor = (candidate == Game.GetPlayer()) || (candidate.GetBaseObject() == Crew_Elite_Vasco)
-                ; Check if candidate has any of the relevant keywords.
                 Bool hasCrewKeyword = candidate.HasKeyword(Crew_CrewTypeCompanion) || candidate.HasKeyword(Crew_CrewTypeElite) || candidate.HasKeyword(Crew_CrewTypeGeneric) || candidate.HasKeyword(Crew_CrewTypeGeneric_NoflavorDialogue)
-                ; If any condition matches, add to the FormList.
+                
                 If isSpecialActor || hasCrewKeyword
                     FindNPCs.AddForm(candidate.GetBaseObject())
+                    Debug.Trace("DAC: Added " + candidate + " to the FormList.")
+                Else
+                    Debug.Trace("DAC: Candidate " + candidate + " does not meet criteria.")
                 EndIf
             EndIf
-            i += 1
-        EndWhile
-    EndIf
+        EndIf
+        i += 1
+    EndWhile
 
-    Debug.Notification("DAC: FormList populated with current Ship Crew NPCs.")
+    Debug.Trace("DAC: FormList populated. Total entries: " + FindNPCs.GetSize())
 EndFunction
 
-;----------------------------
-; 2) COLLISION FUNCTIONS
-;----------------------------
+;======================================================================
+; FUNCTION: CheckAndToggleCollision
+; Description: Determines whether the player is inside their home ship
+;              and toggles collision accordingly.
+;======================================================================
 Function CheckAndToggleCollision()
-    ; Check if the player is on the home spaceship.
     Bool isOnShip = CassiopeiaPapyrusExtender.IsOnPlayerHomeSpaceship(Game.GetPlayer())
     If isOnShip
-        Debug.Notification("DAC: Player is on the home spaceship.")
-    Else
-        Debug.Notification("DAC: Player is off the home spaceship.")
-    EndIf
-
-    ; Call the appropriate collision function.
-    If isOnShip
+        Debug.Trace("DAC: Player is on the home spaceship.")
         DisableCollisionForShipNPCs()
     Else
+        Debug.Trace("DAC: Player is off the home spaceship.")
         EnableCollisionForAllNPCs()
     EndIf
 EndFunction
 
+;======================================================================
+; FUNCTION: DisableCollisionForShipNPCs
+; Description: Disables collision for all NPCs currently on the ship.
+;======================================================================
 Function DisableCollisionForShipNPCs()
-    ; Verify the FormList exists.
     If FindNPCs == None
         Debug.Notification("DAC: ERROR - FindNPCs FormList is None!")
+        Debug.Trace("DAC: ERROR - Collision operation aborted due to missing FormList.")
         Return
     EndIf
 
-    ; Get the number of NPCs in the FormList.
     Int foundCount = FindNPCs.GetSize()
-    Debug.Notification("DAC: Disabling collision for " + foundCount + " NPCs inside the ship.")
-
-    ; Iterate over each NPC and disable collision.
+    Debug.Trace("DAC: Disabling collision for " + foundCount + " NPCs inside the ship.")
+    
     Int i = 0
     While i < foundCount
         Actor targetActor = FindNPCs.GetAt(i) as Actor
         If targetActor && targetActor != Game.GetPlayer() && targetActor.Is3DLoaded()
-            ; If collision is already disabled, skip this actor.
-            If CassiopeiaPapyrusExtender.HasNoCollision(targetActor)
-                Debug.Notification("DAC: Skipping " + targetActor + " as it already has no collision.")
-            Else
-                CassiopeiaPapyrusExtender.DisableCollision(targetActor, True)
-                Debug.Notification("DAC: Collision disabled for " + targetActor)
-                CassiopeiaPapyrusExtender.InitHavok(targetActor)
+            If !CassiopeiaPapyrusExtender.HasNoCollision(targetActor)
+                Debug.Trace("DAC: Setting no collision for " + targetActor)
+                CassiopeiaPapyrusExtender.SetNoCollision(targetActor, True)
             EndIf
         EndIf
         i += 1
     EndWhile
 EndFunction
 
+;======================================================================
+; FUNCTION: EnableCollisionForAllNPCs
+; Description: Re-enables collision for all NPCs when the player leaves the ship.
+;======================================================================
 Function EnableCollisionForAllNPCs()
-    ; Verify the FormList exists.
     If FindNPCs == None
         Debug.Notification("DAC: ERROR - FindNPCs FormList is None!")
+        Debug.Trace("DAC: ERROR - Collision operation aborted due to missing FormList.")
         Return
     EndIf
 
-    ; Get the number of NPCs in the FormList.
     Int foundCount = FindNPCs.GetSize()
-    Debug.Notification("DAC: Enabling collision for " + foundCount + " NPCs outside the ship.")
-
-    ; Iterate over each NPC and enable collision.
+    Debug.Trace("DAC: Enabling collision for " + foundCount + " NPCs.")
+    
     Int i = 0
     While i < foundCount
         Actor targetActor = FindNPCs.GetAt(i) as Actor
         If targetActor && targetActor != Game.GetPlayer() && targetActor.Is3DLoaded()
-            CassiopeiaPapyrusExtender.DisableCollision(targetActor, False)
-            Debug.Notification("DAC: Collision enabled for " + targetActor)
-
-            ; Get the player's position.
-            Float playerX = Game.GetPlayer().GetPositionX()
-            Float playerY = Game.GetPlayer().GetPositionY()
-            Float playerZ = Game.GetPlayer().GetPositionZ()
-
-            ; Offset the target actor's position.
-            Float newX = targetActor.GetPositionX() + 3.0
-            Float newY = targetActor.GetPositionY() + 3.0
-            Float newZ = playerZ
-
-            Debug.Notification("DAC: Set new position for " + targetActor + " to (" + newX + ", " + newY + ", " + newZ + ")")
-            targetActor.SetPosition(newX, newY, newZ)
-            CassiopeiaPapyrusExtender.InitHavok(targetActor)
-
-            ; Verify that collision is enabled; if not, retry the same actor.
             If CassiopeiaPapyrusExtender.HasNoCollision(targetActor)
-                Debug.Notification("DAC: Collision not enabled for " + targetActor + ", retrying.")
-                i -= 1
+                Debug.Trace("DAC: Re-enabling collision for " + targetActor)
+                CassiopeiaPapyrusExtender.SetNoCollision(targetActor, False)
             EndIf
         EndIf
         i += 1
