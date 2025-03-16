@@ -69,23 +69,32 @@ EndFunction
 ;======================================================================
 Function PopulateCrewList()
     Debug.Notification("DAC: Populating crew list...")
-    FindNPCs.Revert()
-    
 
-    Actor[] loadedRefs = FindNPCs.GetArray() as Actor[]
-    Int total = loadedRefs.Length
+    ; Clear existing entries
+    FindNPCs.Revert()
+
+    ; Get player and find nearby references
+    Actor PlayerRef = Game.GetPlayer()
+    ObjectReference[] nearbyRefs = PlayerRef.FindAllReferencesOfType(None, 50.0) ; 50m range
+    Int total = nearbyRefs.Length
+
+    Debug.Notification("DAC: Found " + total + " objects nearby.")
+    
     Int i = 0
     While i < total
-        Actor candidate = loadedRefs[i] as Actor
-        If candidate
+        Actor candidate = nearbyRefs[i] as Actor  ; Safely cast to Actor
+        If candidate && candidate != PlayerRef
             Debug.Notification("DAC: Evaluating candidate: " + candidate)
             
             If candidate.IsDisabled() || CassiopeiaPapyrusExtender.HasNoCollision(candidate)
                 Debug.Notification("DAC: Skipping disabled or no-collision actor: " + candidate)
             Else
-                Bool hasCrewKeyword = candidate.HasKeyword(Crew_CrewTypeCompanion) || candidate.HasKeyword(Crew_CrewTypeElite) || candidate.HasKeyword(Crew_CrewTypeGeneric) || candidate.HasKeyword(Crew_CrewTypeGeneric_NoflavorDialogue)
-                
-                If hasCrewKeyword && candidate != Game.GetPlayer() && candidate != Crew_Elite_Vasco
+                Bool isCompanion = candidate.HasKeyword(Crew_CrewTypeCompanion)
+                Bool isElite = candidate.HasKeyword(Crew_CrewTypeElite)
+                Bool isGeneric = candidate.HasKeyword(Crew_CrewTypeGeneric)
+                Bool isNoFlavor = candidate.HasKeyword(Crew_CrewTypeGeneric_NoflavorDialogue)
+
+                If (isCompanion || isElite || isGeneric || isNoFlavor) && candidate != Crew_Elite_Vasco
                     FindNPCs.AddForm(candidate)
                     Debug.Notification("DAC: Added " + candidate + " to the FormList.")
                 Else
@@ -96,6 +105,7 @@ Function PopulateCrewList()
         i += 1
     EndWhile
 EndFunction
+
 
 ;======================================================================
 ; FUNCTION: UpdateCollisionStates
