@@ -23,7 +23,7 @@ Event OnEnterShipInterior(ObjectReference akShip)
     Debug.Trace("DAC: Entered ship. Updating alias.")
     UpdateFinderAlias()
     Utility.Wait(1.0) ; Wait for the alias to update
-    (DAC_Quest as DAC:Quests:DisableActorCollisionOnPlayerShip).DisableCollisionForShipNPCs()
+    (DAC_Quest as DAC:Quests:DisableActorCollisionOnPlayerShip).DisableCollision()
 EndEvent
 
 Event OnExitShipInterior(ObjectReference akShip)
@@ -31,7 +31,7 @@ Event OnExitShipInterior(ObjectReference akShip)
     Debug.Trace("DAC: Exited ship. Updating alias.")
     UpdateFinderAlias()
     Utility.Wait(1.0) ; Wait for the alias to update
-    (DAC_Quest as DAC:Quests:DisableActorCollisionOnPlayerShip).EnableCollisionForAllNPCs()
+    (DAC_Quest as DAC:Quests:DisableActorCollisionOnPlayerShip).EnableCollision()
 EndEvent
 
 ;----------------------------
