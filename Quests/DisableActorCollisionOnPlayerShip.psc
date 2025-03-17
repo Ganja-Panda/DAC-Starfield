@@ -83,7 +83,7 @@ Function DisableCollision(Actor akActor)
         CassiopeiaPapyrusExtender.DisableCollision(akActor, true)
         CassiopeiaPapyrusExtender.InitHavok(akActor)
         CassiopeiaPapyrusExtender.Set3DUpdateFlag(akActor, 256) ; Havok flag
-        CassiopeiaPapyrusExtender.ClampToGround(akActor)
+        ;CassiopeiaPapyrusExtender.ClampToGround(akActor)
         Debug.Notification("DAC: Disabled collision for " + akActor)
     EndIf
 EndFunction
@@ -95,7 +95,8 @@ Function EnableCollision(Actor akActor)
     If akActor
         CassiopeiaPapyrusExtender.DisableCollision(akActor, false)
         CassiopeiaPapyrusExtender.InitHavok(akActor)
-        CassiopeiaPapyrusExtender.ClampToGround(akActor)
+        CassiopeiaPapyrusExtender.Set3DUpdateFlag(akActor, 256) ; Havok flag
+        ;CassiopeiaPapyrusExtender.ClampToGround(akActor)
         Debug.Notification("DAC: Enabled collision for " + akActor)
     EndIf
 EndFunction
