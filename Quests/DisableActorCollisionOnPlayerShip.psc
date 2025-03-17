@@ -1,9 +1,20 @@
+;======================================================================
+; SCRIPT: DisableActorCollisionOnPlayerShip
+; AUTHOR: [Your Name or Mod Name]
+; DESCRIPTION: 
+;    - Handles collision toggling for crew members aboard the player's ship.
+;    - Disables collision when the player is inside the ship.
+;    - Re-enables collision when the player leaves the ship.
+;    - Uses CassiopeiaPapyrusExtender for collision management.
+;
+;======================================================================
+
 ScriptName DAC:Quests:DisableActorCollisionOnPlayerShip Extends RefCollectionAlias
 
 ;======================================================================
 ; PROPERTY DEFINITIONS
 ;======================================================================
-GlobalVariable Property DAC_UpdateGlobal Auto ; Required global variable for alias update
+GlobalVariable Property DAC_UpdateGlobal Auto  ; Required global variable for alias update
 
 ;======================================================================
 ; INITIALIZATION
@@ -16,15 +27,15 @@ Event OnInit()
         Utility.Wait(1.0)
     EndWhile
     
-    Utility.Wait(3.0) ; Ensure all actors are fully loaded
+    Utility.Wait(3.0)  ; Ensure all actors are fully loaded
 
     If Self.GetCount() == 0
-        Debug.Notification("DAC: ERROR - Alias Collection is empty!")
+        Debug.Notification("DAC ERROR: Alias Collection is empty!")
         Return
     EndIf
 
     Debug.Notification("DAC: Initialization complete. Monitoring collision changes.")
-    StartMonitoringGlobal() ; Start checking DAC_UpdateGlobal
+    StartMonitoringGlobal()  ; Start checking DAC_UpdateGlobal
 EndEvent
 
 ;======================================================================
@@ -41,7 +52,7 @@ Function StartMonitoringGlobal()
             UpdateCollisionStates()
             lastValue = currentValue
         EndIf
-        Utility.Wait(1.0) ; Adjust polling interval as needed
+        Utility.Wait(1.0)  ; Adjust polling interval as needed
     EndWhile
 EndFunction
 
@@ -50,7 +61,7 @@ EndFunction
 ;======================================================================
 Function UpdateCollisionStates()
     Actor PlayerRef = Game.GetPlayer()
-    Bool bPlayerOnShip = PlayerRef.IsInInterior() ; Example check, replace with ship-specific condition
+    Bool bPlayerOnShip = PlayerRef.IsInInterior()  ; Example check, replace with ship-specific condition
 
     Int count = Self.GetCount()
     Debug.Notification("DAC: Updating collision for " + count + " NPCs.")
@@ -69,7 +80,7 @@ Function UpdateCollisionStates()
                 EndIf
             EndIf
         Else
-            Debug.Notification("DAC: ERROR - Alias at index [" + i + "] is empty!")
+            Debug.Notification("DAC ERROR: Alias at index [" + i + "] is empty!")
         EndIf
         i += 1
     EndWhile
@@ -82,7 +93,7 @@ Function DisableCollision(Actor akActor)
     If akActor
         CassiopeiaPapyrusExtender.DisableCollision(akActor, true)
         CassiopeiaPapyrusExtender.InitHavok(akActor)
-        CassiopeiaPapyrusExtender.Set3DUpdateFlag(akActor, 256) ; Havok flag
+        CassiopeiaPapyrusExtender.Set3DUpdateFlag(akActor, 256)  ; Havok flag
         ;CassiopeiaPapyrusExtender.ClampToGround(akActor)
         Debug.Notification("DAC: Disabled collision for " + akActor)
     EndIf
@@ -95,7 +106,7 @@ Function EnableCollision(Actor akActor)
     If akActor
         CassiopeiaPapyrusExtender.DisableCollision(akActor, false)
         CassiopeiaPapyrusExtender.InitHavok(akActor)
-        CassiopeiaPapyrusExtender.Set3DUpdateFlag(akActor, 256) ; Havok flag
+        CassiopeiaPapyrusExtender.Set3DUpdateFlag(akActor, 256)  ; Havok flag
         ;CassiopeiaPapyrusExtender.ClampToGround(akActor)
         Debug.Notification("DAC: Enabled collision for " + akActor)
     EndIf

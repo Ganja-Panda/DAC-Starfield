@@ -1,35 +1,32 @@
 ;======================================================================
-; Script: DAC:Quests:PlayerLocationChangeHandler
-; Description: Handles player location changes for ship interiors.
-;              Updates the ReferenceAlias and triggers collision
-;              updates in the main collision alias.
+; SCRIPT: PlayerLocationChangeHandler
+; AUTHOR: [Your Name or Mod Name]
+; DESCRIPTION: 
+;    - Tracks player location changes related to ship interiors.
+;    - Updates ReferenceAlias when entering and exiting the ship.
+;    - Identifies which actors leave the ship with the player.
+;
 ;======================================================================
 
 ScriptName DAC:Quests:PlayerLocationChangeHandler Extends ReferenceAlias
 
-;----------------------------
-; Property Definitions
-;----------------------------
-DAC:Quests:DisableActorCollisionOnPlayerShip Property DAC_CollisionAlias Auto
+;======================================================================
+; PROPERTY DEFINITIONS
+;======================================================================
 GlobalVariable Property DAC_UpdateGlobal Auto ; Required global variable for alias update
+ReferenceAlias[] Property ShipOccupants Auto ; List of actors currently inside the ship
+Bool Property IsOccupantListUpdated = False Auto ; Tracks if the list is already updated
 
-;----------------------------
-; Event Handlers
-;----------------------------
+;======================================================================
+; EVENT HANDLERS
+;======================================================================
 Event OnEnterShipInterior(ObjectReference akShip)
     Debug.Notification("DAC: Entered ship. Updating alias.")
 
     UpdateFinderAlias()
-    Utility.Wait(2.0) ; Ensure alias updates before applying collision changes
-
-    If DAC_CollisionAlias
-        Actor PlayerRef = Self.GetActorReference()  ; Ensure we get the player
-        If PlayerRef
-            Debug.Notification("DAC: Disabling player collision.")
-            DAC_CollisionAlias.DisableCollision(PlayerRef)
-        Else
-            Debug.Notification("DAC ERROR: Player Reference is invalid.")
-        EndIf
+    If !IsOccupantListUpdated
+        TrackShipOccupants()
+        IsOccupantListUpdated = True
     EndIf
 EndEvent
 
@@ -37,22 +34,10 @@ Event OnExitShipInterior(ObjectReference akShip)
     Debug.Notification("DAC: Exited ship. Updating alias.")
 
     UpdateFinderAlias()
-    Utility.Wait(2.0) ; Ensure alias updates before applying collision changes
-
-    If DAC_CollisionAlias
-        Actor PlayerRef = Self.GetActorReference()  ; Ensure we get the player
-        If PlayerRef
-            Debug.Notification("DAC: Enabling player collision.")
-            DAC_CollisionAlias.EnableCollision(PlayerRef)
-        Else
-            Debug.Notification("DAC ERROR: Player Reference is invalid.")
-        EndIf
-    EndIf
+    IdentifyExitingActors()
+    IsOccupantListUpdated = False ; Allow the list to be refreshed on the next entry
 EndEvent
 
-;----------------------------
-; UpdateFinderAlias Function
-;----------------------------
 Function UpdateFinderAlias()
     ; Ensure the alias is valid.
     Actor PlayerRef = Self.GetActorReference()
@@ -62,20 +47,48 @@ Function UpdateFinderAlias()
     EndIf
     Debug.Notification("DAC: Updating Player Reference Alias.")
 
-    ; Ensure the global variable is valid.
-    If DAC_UpdateGlobal == None
-        Debug.Notification("DAC ERROR: DAC_UpdateGlobal is not set.")
-        Return
+    ; Directly set the alias reference instead of relying on global toggling.
+    ReferenceAlias PlayerAlias = Self as ReferenceAlias
+    If PlayerAlias
+        PlayerAlias.ForceRefTo(PlayerRef)
+        Debug.Notification("DAC: Player Reference Alias successfully updated.")
+    Else
+        Debug.Notification("DAC ERROR: PlayerAlias is invalid.")
     EndIf
+EndFunction
 
-    ; Toggle the global variable between 0 and 1.
-    Float currentValue = DAC_UpdateGlobal.GetValue()
-    Debug.Notification("DAC: Current DAC_UpdateGlobal: " + currentValue)
-    DAC_UpdateGlobal.SetValue(1.0 - currentValue)
-    Debug.Notification("DAC: New DAC_UpdateGlobal: " + DAC_UpdateGlobal.GetValue())
+Function TrackShipOccupants()
+    Debug.Notification("DAC: Tracking actors inside the ship.")
+    ; Store actors inside the ship in ShipOccupants array if not already updated.
+    ShipOccupants.Clear()
+    Quest owningQuest = Self.GetOwningQuest()
+    If owningQuest
+        Int aliasCount = 0 ; Placeholder as GetNumAliases() is not a valid function
+        Int i = 0
+        While i < aliasCount
+            ReferenceAlias aliasRef = None ; Placeholder as GetAlias() is not a valid function as ReferenceAlias
+            If aliasRef
+                Actor occupant = aliasRef.GetActorReference()
+                If occupant
+                    ShipOccupants.Add(aliasRef)
+                    Debug.Notification("DAC: Added occupant ID " + occupant.GetFormID())
+                EndIf
+            EndIf
+            i += 1
+        EndWhile
+    EndIf
+EndFunction
 
-    ; Trigger alias update via the owning quest.
-    Self.GetOwningQuest().UpdateCurrentInstanceGlobal(DAC_UpdateGlobal)
-
-    Debug.Notification("DAC: Player Reference Alias updated.")
+Function IdentifyExitingActors()
+    Debug.Notification("DAC: Identifying actors who left the ship.")
+    Int i = 0
+    While i < ShipOccupants.Length
+        Actor occupant = ShipOccupants[i].GetActorReference()
+        If occupant && !occupant.IsInInterior()
+            Debug.Notification("DAC: Actor left ship with ID " + occupant.GetFormID())
+            ; Re-initialize physics if necessary
+            CassiopeiaPapyrusExtender.InitHavok(occupant, True)
+        EndIf
+        i += 1
+    EndWhile
 EndFunction
