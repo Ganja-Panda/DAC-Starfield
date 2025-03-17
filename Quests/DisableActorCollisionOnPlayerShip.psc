@@ -1,6 +1,7 @@
 ;======================================================================
 ; SCRIPT: DisableActorCollisionOnPlayerShip
-; AUTHOR: [Your Name or Mod Name]
+; AUTHOR: Ganja Panda Creations
+; TITLE: Disable Actor Collision on Player Ship
 ; DESCRIPTION: 
 ;    - Handles collision toggling for crew members aboard the player's ship.
 ;    - Disables collision when the player is inside the ship.

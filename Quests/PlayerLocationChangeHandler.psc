@@ -1,6 +1,7 @@
 ;======================================================================
 ; SCRIPT: PlayerLocationChangeHandler
-; AUTHOR: [Your Name or Mod Name]
+; AUTHOR: Ganja Panda Creations
+; TITLE: Disable Actor Collision on Player Ship
 ; DESCRIPTION: 
 ;    - Tracks player location changes related to ship interiors.
 ;    - Updates ReferenceAlias when entering and exiting the ship.
@@ -14,7 +15,6 @@ ScriptName DAC:Quests:PlayerLocationChangeHandler Extends ReferenceAlias
 ; PROPERTY DEFINITIONS
 ;======================================================================
 GlobalVariable Property DAC_UpdateGlobal Auto ; Required global variable for alias update
-ReferenceAlias[] Property ShipOccupants Auto ; List of actors currently inside the ship
 Bool Property IsOccupantListUpdated = False Auto ; Tracks if the list is already updated
 
 ;======================================================================
@@ -29,10 +29,7 @@ Event OnEnterShipInterior(ObjectReference akShip)
     EndIf
 
     UpdateFinderAlias()
-    If !IsOccupantListUpdated
-        TrackShipOccupants()
-        IsOccupantListUpdated = True
-    EndIf
+    IsOccupantListUpdated = True
 EndEvent
 
 Event OnExitShipInterior(ObjectReference akShip)
@@ -44,7 +41,6 @@ Event OnExitShipInterior(ObjectReference akShip)
     EndIf
 
     UpdateFinderAlias()
-    IdentifyExitingActors()
     IsOccupantListUpdated = False ; Allow the list to be refreshed on the next entry
 EndEvent
 
@@ -65,40 +61,4 @@ Function UpdateFinderAlias()
     Else
         Debug.Notification("DAC ERROR: PlayerAlias is invalid.")
     EndIf
-EndFunction
-
-Function TrackShipOccupants()
-    Debug.Notification("DAC: Tracking actors inside the ship.")
-    ; Store actors inside the ship in ShipOccupants array if not already updated.
-    ShipOccupants.Clear()
-    Quest owningQuest = Self.GetOwningQuest()
-    If owningQuest
-        Int aliasCount = 0 ; Placeholder as GetNumAliases() is not a valid function
-        Int i = 0
-        While i < aliasCount
-            ReferenceAlias aliasRef = None ; Placeholder as GetAlias() is not a valid function as ReferenceAlias
-            If aliasRef
-                Actor occupant = aliasRef.GetActorReference()
-                If occupant
-                    ShipOccupants.Add(aliasRef)
-                    Debug.Notification("DAC: Added occupant ID " + occupant.GetFormID())
-                EndIf
-            EndIf
-            i += 1
-        EndWhile
-    EndIf
-EndFunction
-
-Function IdentifyExitingActors()
-    Debug.Notification("DAC: Identifying actors who left the ship.")
-    Int i = 0
-    While i < ShipOccupants.Length
-        Actor occupant = ShipOccupants[i].GetActorReference()
-        If occupant && !occupant.IsInInterior()
-            Debug.Notification("DAC: Actor left ship with ID " + occupant.GetFormID())
-            ; Re-initialize physics if necessary
-            CassiopeiaPapyrusExtender.InitHavok(occupant, True)
-        EndIf
-        i += 1
-    EndWhile
 EndFunction
