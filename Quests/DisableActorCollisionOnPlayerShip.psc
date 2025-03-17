@@ -66,9 +66,26 @@ Function UpdateCollisionStates()
     Int count = Self.GetCount()
     Debug.Notification("DAC: Updating collision for " + count + " NPCs.")
 
-    Int i = 0
-    While i < count
-        Actor CrewMember = Self.GetAt(i) as Actor
+    ; Ensure all actors are 3D loaded
+    Bool allLoaded = False
+    While !allLoaded
+        allLoaded = True
+        Int i = 0
+        While i < count
+            Actor CrewMember = Self.GetAt(i) as Actor
+            If CrewMember && !CrewMember.Is3DLoaded()
+                allLoaded = False
+                Debug.Notification("DAC: Waiting for all crew members to be 3D loaded.")
+                Utility.Wait(1.0)
+            EndIf
+            i += 1
+        EndWhile
+    EndWhile
+
+    ; Proceed with updating collision states
+    Int j = 0
+    While j < count
+        Actor CrewMember = Self.GetAt(j) as Actor
         If CrewMember
             If bPlayerOnShip
                 If !CassiopeiaPapyrusExtender.HasNoCollision(CrewMember)
@@ -80,9 +97,9 @@ Function UpdateCollisionStates()
                 EndIf
             EndIf
         Else
-            Debug.Notification("DAC ERROR: Alias at index [" + i + "] is empty!")
+            Debug.Notification("DAC ERROR: Alias at index [" + j + "] is empty!")
         EndIf
-        i += 1
+        j += 1
     EndWhile
 EndFunction
 

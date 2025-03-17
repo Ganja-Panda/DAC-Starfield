@@ -23,6 +23,11 @@ Bool Property IsOccupantListUpdated = False Auto ; Tracks if the list is already
 Event OnEnterShipInterior(ObjectReference akShip)
     Debug.Notification("DAC: Entered ship. Updating alias.")
 
+    ; Notify DisableActorCollisionOnPlayerShip by toggling DAC_UpdateGlobal
+    If DAC_UpdateGlobal
+        DAC_UpdateGlobal.SetValue(1) ; Signal collision should be disabled
+    EndIf
+
     UpdateFinderAlias()
     If !IsOccupantListUpdated
         TrackShipOccupants()
@@ -32,6 +37,11 @@ EndEvent
 
 Event OnExitShipInterior(ObjectReference akShip)
     Debug.Notification("DAC: Exited ship. Updating alias.")
+
+    ; Notify DisableActorCollisionOnPlayerShip by toggling DAC_UpdateGlobal
+    If DAC_UpdateGlobal
+        DAC_UpdateGlobal.SetValue(0) ; Signal collision should be enabled
+    EndIf
 
     UpdateFinderAlias()
     IdentifyExitingActors()
