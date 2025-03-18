@@ -87,7 +87,7 @@ EndFunction
 ;---------------------------------------------------
 ; Debugging Function to Manually Dump Alias Contents
 ;---------------------------------------------------
-Function DumpAliasContents()
+Function DumpAliasContents() Global
     Debug.Notification("DAC: Dumping alias contents.")
     Quest myQuest = Game.GetFormFromFile(0x0000080D, "DAC.esm") as Quest  
     If myQuest == None
