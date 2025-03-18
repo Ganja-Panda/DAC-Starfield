@@ -10,7 +10,7 @@
 
 ScriptName DAC:CollisionUtility extends ScriptObject
 
-Function RunCollisionUtility() Global
+Function RCU() Global
     Quest myQuest = Game.GetFormFromFile(0x0000080D, "DAC.esm") as Quest  ; Retrieve the quest
     If myQuest == None
         Debug.Notification("DAC: Quest not found.")
