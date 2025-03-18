@@ -76,10 +76,10 @@ Function UpdateCollisionStates()
             If !bPlayerOnShip
                 Debug.Trace("DAC: Actor " + CrewMember + " left the ship with player.")
                 EnableCollision(CrewMember)
-            Else
-                If !CassiopeiaPapyrusExtender.HasNoCollision(CrewMember)
-                    DisableCollision(CrewMember)
-                EndIf
+            ;Else
+            ;    If !CassiopeiaPapyrusExtender.HasNoCollision(CrewMember)
+            ;        DisableCollision(CrewMember)
+            ;    EndIf
             EndIf
         Else
             Debug.Trace("DAC: Ignoring actor " + CrewMember + " (Not 3D loaded, still on ship)")
