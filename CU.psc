@@ -1,5 +1,5 @@
 ;======================================================================
-; Script: DAC:Utilities:CU (Updated Debugging Version)
+; Script: DAC:Utilities:CU (Enhanced Debugging)
 ; Description: This utility script retrieves alias collection dynamically
 ;              and enables collision on NPCs, with additional debug logs.
 ;======================================================================
@@ -35,7 +35,9 @@ Function RunCU() Global
     ;---------------------------------------------------
     ; Ensure Alias Collection Has NPCs
     ;---------------------------------------------------
+    Debug.Notification("DAC: Checking alias collection count.")
     Int aliasCount = FindNPCs.GetCount()
+    Debug.Notification("DAC: Alias count is " + aliasCount)
     If aliasCount == 0
         Debug.Notification("DAC: No NPCs found in alias collection.")
         Return
@@ -47,6 +49,7 @@ Function RunCU() Global
     ;---------------------------------------------------
     Int j = 0
     While j < aliasCount
+        Debug.Notification("DAC: Attempting to retrieve actor at index " + j)
         Actor targetActor = FindNPCs.GetAt(j) as Actor
         If targetActor
             Debug.Notification("DAC: Retrieved actor: " + targetActor)
@@ -72,7 +75,7 @@ Function RunCU() Global
                 Debug.Notification("DAC: Skipping player actor.")
             EndIf
         Else
-            Debug.Notification("DAC: Actor at index " + j + " is None.")
+            Debug.Notification("DAC: Actor at index " + j + " is None. Possible issue with alias filling.")
         EndIf
         j += 1
     EndWhile
