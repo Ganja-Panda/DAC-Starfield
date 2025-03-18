@@ -1,11 +1,7 @@
 ;======================================================================
-; Script: DAC:Utilities:CU
-; Description: This global utility script performs the following tasks
-;              all within a single function:
-;              1) Retrieves alias collection dynamically from QST_DAC_DisableCollision.
-;              2) Waits until the player is fully loaded.
-;              3) Uses a RefCollectionAlias to find NPCs.
-;              4) Iterates over the Alias Collection to enable collision on the NPCs.
+; Script: DAC:Utilities:CU (Updated Debugging Version)
+; Description: This utility script retrieves alias collection dynamically
+;              and enables collision on NPCs, with additional debug logs.
 ;======================================================================
 
 ScriptName DAC:CU extends ScriptObject
@@ -20,7 +16,6 @@ Function RunCU() Global
     EndIf
     Debug.Notification("DAC: Quest found.")
 
-    ; Use the actual index of the alias in your quest
     RefCollectionAlias FindNPCs = myQuest.GetAlias(3) as RefCollectionAlias
     If FindNPCs == None
         Debug.Notification("DAC: Alias not found in quest.")
@@ -29,7 +24,7 @@ Function RunCU() Global
     Debug.Notification("DAC: Alias found.")
 
     ;---------------------------------------------------
-    ; 1) Wait for the Player to be Fully Loaded (3D)
+    ; Wait for the Player to be Fully Loaded (3D)
     ;---------------------------------------------------
     While !Game.GetPlayer().Is3DLoaded()
         Debug.Notification("DAC: Waiting for player 3D load.")
@@ -38,35 +33,43 @@ Function RunCU() Global
     Debug.Notification("DAC: Player 3D loaded.")
 
     ;---------------------------------------------------
-    ; 2) Ensure Alias Collection Has NPCs
+    ; Ensure Alias Collection Has NPCs
     ;---------------------------------------------------
     Int aliasCount = FindNPCs.GetCount()
     If aliasCount == 0
         Debug.Notification("DAC: No NPCs found in alias collection.")
         Return
     EndIf
-    Debug.Notification("DAC: Enabling collision for " + aliasCount + " NPCs now.")
+    Debug.Notification("DAC: Found " + aliasCount + " NPCs in alias collection.")
 
     ;---------------------------------------------------
-    ; 3) Enable Collision for All NPCs in Alias Collection
+    ; Enable Collision for All NPCs in Alias Collection
     ;---------------------------------------------------
     Int j = 0
     While j < aliasCount
         Actor targetActor = FindNPCs.GetAt(j) as Actor
         If targetActor
-            Debug.Notification("DAC: Processing actor " + targetActor)
-            If targetActor != Game.GetPlayer() && targetActor.Is3DLoaded()
-                Debug.Notification("DAC: Actor " + targetActor + " is 3D loaded and not the player.")
-                CassiopeiaPapyrusExtender.DisableCollision(targetActor, False)
-                Debug.Notification("DAC: Collision enabled for " + targetActor)
+            Debug.Notification("DAC: Retrieved actor: " + targetActor)
+
+            ; Ensure actor is loaded before processing
+            While !targetActor.Is3DLoaded()
+                Debug.Notification("DAC: Waiting for " + targetActor + " to load.")
+                Utility.Wait(1.0)
+            EndWhile
+            Debug.Notification("DAC: " + targetActor + " is now 3D loaded.")
+
+            ; Skip player
+            If targetActor != Game.GetPlayer()
+                Debug.Notification("DAC: Attempting to disable collision for " + targetActor)
+                Bool success = CassiopeiaPapyrusExtender.DisableCollision(targetActor, False)
+                If success
+                    Debug.Notification("DAC: DisableCollision succeeded for " + targetActor)
+                Else
+                    Debug.Notification("DAC: DisableCollision failed for " + targetActor)
+                EndIf
                 CassiopeiaPapyrusExtender.UpdateReference3D(targetActor)
-                ;CassiopeiaPapyrusExtender.InitHavok(targetActor)
-                ;If CassiopeiaPapyrusExtender.HasNoCollision(targetActor)
-                ;    Debug.Notification("DAC: Collision not enabled for " + targetActor + ", retrying.")
-                ;    j -= 1
-                ;EndIf
             Else
-                Debug.Notification("DAC: Actor " + targetActor + " is not 3D loaded or is the player.")
+                Debug.Notification("DAC: Skipping player actor.")
             EndIf
         Else
             Debug.Notification("DAC: Actor at index " + j + " is None.")
