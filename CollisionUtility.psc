@@ -17,8 +17,8 @@ Function RunCollisionUtility() Global
         Return
     EndIf
 
-    ; Replace 0 with the actual index of the alias in your quest
-    RefCollectionAlias FindNPCs = myQuest.GetAlias(0) as RefCollectionAlias
+    ; Use the actual index of the alias in your quest
+    RefCollectionAlias FindNPCs = myQuest.GetAlias(3) as RefCollectionAlias
     If FindNPCs == None
         Debug.Notification("DAC: Alias not found in quest.")
         Return
