@@ -29,7 +29,7 @@ Event OnInit()
         Utility.Wait(1.0)
     EndWhile
     
-    Utility.Wait(0.5)  ; Ensure all actors are fully loaded
+    Utility.Wait(2.0)  ; Ensure all actors are fully loaded
 
     If Self.GetCount() == 0
         Debug.Notification("DAC ERROR: Alias Collection is empty!")
