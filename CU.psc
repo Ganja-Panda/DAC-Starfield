@@ -8,9 +8,9 @@
 ;              4) Iterates over the Alias Collection to enable collision on the NPCs.
 ;======================================================================
 
-ScriptName DAC:CollisionUtility extends ScriptObject
+ScriptName DAC:CU extends ScriptObject
 
-Function RCU() Global
+Function RunCU() Global
     Quest myQuest = Game.GetFormFromFile(0x0000080D, "DAC.esm") as Quest  ; Retrieve the quest
     If myQuest == None
         Debug.Notification("DAC: Quest not found.")
