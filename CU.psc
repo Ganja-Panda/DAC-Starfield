@@ -40,28 +40,36 @@ Function RunCU() Global
     ;---------------------------------------------------
     ; 2) Ensure Alias Collection Has NPCs
     ;---------------------------------------------------
-    If FindNPCs.GetCount() == 0
+    Int aliasCount = FindNPCs.GetCount()
+    If aliasCount == 0
         Debug.Notification("DAC: No NPCs found in alias collection.")
         Return
     EndIf
-    Debug.Notification("DAC: Enabling collision for " + FindNPCs.GetCount() + " NPCs now.")
+    Debug.Notification("DAC: Enabling collision for " + aliasCount + " NPCs now.")
 
     ;---------------------------------------------------
     ; 3) Enable Collision for All NPCs in Alias Collection
     ;---------------------------------------------------
-    Int foundCount = FindNPCs.GetCount()
     Int j = 0
-    While j < foundCount
+    While j < aliasCount
         Actor targetActor = FindNPCs.GetAt(j) as Actor
-        If targetActor && targetActor != Game.GetPlayer() && targetActor.Is3DLoaded()
-            CassiopeiaPapyrusExtender.DisableCollision(targetActor, False)
-            Debug.Notification("DAC: Collision enabled for " + targetActor)
-            CassiopeiaPapyrusExtender.UpdateReference3D(targetActor)
-            ;CassiopeiaPapyrusExtender.InitHavok(targetActor)
-            ;If CassiopeiaPapyrusExtender.HasNoCollision(targetActor)
-            ;    Debug.Notification("DAC: Collision not enabled for " + targetActor + ", retrying.")
-            ;    j -= 1
-            ;EndIf
+        If targetActor
+            Debug.Notification("DAC: Processing actor " + targetActor)
+            If targetActor != Game.GetPlayer() && targetActor.Is3DLoaded()
+                Debug.Notification("DAC: Actor " + targetActor + " is 3D loaded and not the player.")
+                CassiopeiaPapyrusExtender.DisableCollision(targetActor, False)
+                Debug.Notification("DAC: Collision enabled for " + targetActor)
+                CassiopeiaPapyrusExtender.UpdateReference3D(targetActor)
+                ;CassiopeiaPapyrusExtender.InitHavok(targetActor)
+                ;If CassiopeiaPapyrusExtender.HasNoCollision(targetActor)
+                ;    Debug.Notification("DAC: Collision not enabled for " + targetActor + ", retrying.")
+                ;    j -= 1
+                ;EndIf
+            Else
+                Debug.Notification("DAC: Actor " + targetActor + " is not 3D loaded or is the player.")
+            EndIf
+        Else
+            Debug.Notification("DAC: Actor at index " + j + " is None.")
         EndIf
         j += 1
     EndWhile
