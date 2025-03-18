@@ -51,11 +51,12 @@ Function RunCollisionUtility() Global
         If targetActor && targetActor != Game.GetPlayer() && targetActor.Is3DLoaded()
             CassiopeiaPapyrusExtender.DisableCollision(targetActor, False)
             Debug.Notification("DAC: Collision enabled for " + targetActor)
-            CassiopeiaPapyrusExtender.InitHavok(targetActor)
-            If CassiopeiaPapyrusExtender.HasNoCollision(targetActor)
-                Debug.Notification("DAC: Collision not enabled for " + targetActor + ", retrying.")
-                j -= 1
-            EndIf
+            CassiopeiaPapyrusExtender.UpdateReference3D(targetActor)
+            ;CassiopeiaPapyrusExtender.InitHavok(targetActor)
+            ;If CassiopeiaPapyrusExtender.HasNoCollision(targetActor)
+            ;    Debug.Notification("DAC: Collision not enabled for " + targetActor + ", retrying.")
+            ;    j -= 1
+            ;EndIf
         EndIf
         j += 1
     EndWhile

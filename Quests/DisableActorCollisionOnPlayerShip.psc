@@ -22,21 +22,21 @@ LocationAlias Property playerShipInterior Auto Const mandatory        ; Alias fo
 ; INITIALIZATION
 ;======================================================================
 Event OnInit()
-    Debug.Notification("DAC: DisableActorCollisionOnPlayerShip initializing...")
+    Debug.Trace("DAC: DisableActorCollisionOnPlayerShip initializing...")
     
-    Debug.Notification("DAC: Waiting for player 3D load...")
+    Debug.Trace("DAC: Waiting for player 3D load...")
     While !Game.GetPlayer().Is3DLoaded()
         Utility.Wait(1.0)
     EndWhile
     
-    Utility.Wait(3.0)  ; Ensure all actors are fully loaded
+    Utility.Wait(0.5)  ; Ensure all actors are fully loaded
 
     If Self.GetCount() == 0
-        Debug.Notification("DAC ERROR: Alias Collection is empty!")
+        Debug.Trace("DAC ERROR: Alias Collection is empty!")
         Return
     EndIf
 
-    Debug.Notification("DAC: Initialization complete. Monitoring collision changes.")
+    Debug.Trace("DAC: Initialization complete. Monitoring collision changes.")
     StartMonitoringGlobal()
 EndEvent
 
@@ -50,7 +50,7 @@ Function StartMonitoringGlobal()
     While True
         Float currentValue = DAC_UpdateGlobal.GetValue()
         If currentValue != lastValue
-            Debug.Notification("DAC: Global changed, updating collision states.")
+            Debug.Trace("DAC: Global changed, updating collision states.")
             UpdateCollisionStates()
             lastValue = currentValue
         EndIf
@@ -66,7 +66,7 @@ Function UpdateCollisionStates()
     Bool bPlayerOnShip = PlayerRef.IsInLocation(playerShipInterior.GetLocation())
 
     Int count = Self.GetCount()
-    Debug.Notification("DAC: Updating collision for " + count + " NPCs.")
+    Debug.Trace("DAC: Updating collision for " + count + " NPCs.")
 
     ; Only process actors who are currently 3D loaded (meaning they are with the player)
     Int j = 0
@@ -74,7 +74,7 @@ Function UpdateCollisionStates()
         Actor CrewMember = Self.GetAt(j) as Actor
         If CrewMember && CrewMember.Is3DLoaded()
             If !bPlayerOnShip
-                Debug.Notification("DAC: Actor " + CrewMember + " left the ship with player.")
+                Debug.Trace("DAC: Actor " + CrewMember + " left the ship with player.")
                 EnableCollision(CrewMember)
             Else
                 If !CassiopeiaPapyrusExtender.HasNoCollision(CrewMember)
@@ -82,7 +82,7 @@ Function UpdateCollisionStates()
                 EndIf
             EndIf
         Else
-            Debug.Notification("DAC: Ignoring actor " + CrewMember + " (Not 3D loaded, still on ship)")
+            Debug.Trace("DAC: Ignoring actor " + CrewMember + " (Not 3D loaded, still on ship)")
         EndIf
         j += 1
     EndWhile
@@ -95,10 +95,11 @@ EndFunction
 Function DisableCollision(Actor akActor)
     If akActor
         CassiopeiaPapyrusExtender.DisableCollision(akActor, true)
-        ;CassiopeiaPapyrusExtender.InitHavok(akActor)
-        CassiopeiaPapyrusExtender.Set3DUpdateFlag(akActor, 256)  ; Havok flag
+        CassiopeiaPapyrusExtender.UpdateReference3D(akActor)
+        ;CassiopeiaPapyrusExtender.InitHavok(akActor) ; will be used in Cassiopeia 3.0
+        ;CassiopeiaPapyrusExtender.Set3DUpdateFlag(akActor, 256)  ; Havok flag
         ;CassiopeiaPapyrusExtender.ClampToGround(akActor)
-        Debug.Notification("DAC: Disabled collision for " + akActor)
+        Debug.Trace("DAC: Disabled collision for " + akActor)
     EndIf
 EndFunction
 
@@ -108,9 +109,10 @@ EndFunction
 Function EnableCollision(Actor akActor)
     If akActor
         CassiopeiaPapyrusExtender.DisableCollision(akActor, false)
+        CassiopeiaPapyrusExtender.UpdateReference3D(akActor)
         ;CassiopeiaPapyrusExtender.InitHavok(akActor)
-        CassiopeiaPapyrusExtender.Set3DUpdateFlag(akActor, 256)  ; Havok flag
+        ;CassiopeiaPapyrusExtender.Set3DUpdateFlag(akActor, 256)  ; Havok flag
         ;CassiopeiaPapyrusExtender.ClampToGround(akActor)
-        Debug.Notification("DAC: Enabled collision for " + akActor)
+        Debug.Trace("DAC: Enabled collision for " + akActor)
     EndIf
 EndFunction
