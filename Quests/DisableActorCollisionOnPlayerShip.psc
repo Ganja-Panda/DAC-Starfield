@@ -16,6 +16,8 @@ ScriptName DAC:Quests:DisableActorCollisionOnPlayerShip Extends RefCollectionAli
 ; PROPERTY DEFINITIONS
 ;======================================================================
 GlobalVariable Property DAC_UpdateGlobal Auto  ; Required global variable for alias update
+Faction Property CrewFaction Auto  ; Faction that determines crew membership
+Keyword Property COM_CompanionKeyword Auto  ; Keyword to identify companions
 
 ;======================================================================
 ; INITIALIZATION
@@ -67,38 +69,40 @@ Function UpdateCollisionStates()
     Int count = Self.GetCount()
     Debug.Notification("DAC: Updating collision for " + count + " NPCs.")
 
-    ; Ensure all actors are 3D loaded
-    Bool allLoaded = False
-    While !allLoaded
-        allLoaded = True
-        Int i = 0
-        While i < count
-            Actor CrewMember = Self.GetAt(i) as Actor
-            If CrewMember && !CrewMember.Is3DLoaded()
-                allLoaded = False
-                Debug.Notification("DAC: Waiting for all crew members to be 3D loaded.")
-                Utility.Wait(1.0)
+    ; Ensure only followers are 3D loaded, skip others
+    Int i = 0
+    While i < count
+        Actor CrewMember = Self.GetAt(i) as Actor
+        If CrewMember
+            If CrewMember.IsInFaction(CrewFaction)  ; Replace 'CrewFaction' with the correct faction
+                Int waitTime = 0
+                While !CrewMember.Is3DLoaded() && waitTime < 10
+                    Utility.Wait(1.0)
+                    waitTime += 1
+                EndWhile
             EndIf
-            i += 1
-        EndWhile
+        EndIf
+        i += 1
     EndWhile
 
-    ; Proceed with updating collision states
+    ; Compare actors leaving the ship with CompanionActorScript
     Int j = 0
     While j < count
         Actor CrewMember = Self.GetAt(j) as Actor
         If CrewMember
-            If bPlayerOnShip
+            If !bPlayerOnShip
+                Float companionID = (CrewMember as CompanionActorScript).GetCompanionIDValue()
+                If CrewMember.HasKeyword(COM_CompanionKeyword) || (CrewMember as CompanionActorScript).GetCompanionIDValue() == companionID
+                    Debug.Notification("DAC: Companion " + CrewMember + " left the ship with player.")
+                    EnableCollision(CrewMember)
+                Else
+                    Debug.Notification("DAC: Crew member " + CrewMember + " remains on ship.")
+                EndIf
+            Else
                 If !CassiopeiaPapyrusExtender.HasNoCollision(CrewMember)
                     DisableCollision(CrewMember)
                 EndIf
-            Else
-                If CassiopeiaPapyrusExtender.HasNoCollision(CrewMember)
-                    EnableCollision(CrewMember)
-                EndIf
             EndIf
-        Else
-            Debug.Notification("DAC ERROR: Alias at index [" + j + "] is empty!")
         EndIf
         j += 1
     EndWhile
