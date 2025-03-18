@@ -50,33 +50,40 @@ Function RunCU() Global
     ;---------------------------------------------------
     Int j = 0
     While j < aliasCount
-        Debug.Notification("DAC: Attempting to retrieve actor at index " + j)
-        Actor targetActor = FindNPCs.GetAt(j) as Actor
-        If targetActor
-            Debug.Notification("DAC: Successfully retrieved actor: " + targetActor)
-
-            ; Ensure actor is loaded before processing
-            While !targetActor.Is3DLoaded()
-                Debug.Notification("DAC: Waiting for " + targetActor + " to load.")
-                Utility.Wait(1.0)
-            EndWhile
-            Debug.Notification("DAC: " + targetActor + " is now 3D loaded.")
-
-            ; Skip player
-            If targetActor != Game.GetPlayer()
-                Debug.Notification("DAC: Attempting to disable collision for " + targetActor)
-                Bool success = CassiopeiaPapyrusExtender.DisableCollision(targetActor, False)
-                If success
-                    Debug.Notification("DAC: DisableCollision succeeded for " + targetActor)
+        Debug.Notification("DAC: Attempting to retrieve reference at index " + j)
+        ObjectReference refObj = FindNPCs.GetAt(j)
+        If refObj
+            Debug.Notification("DAC: Successfully retrieved reference: " + refObj)
+            
+            Actor targetActor = refObj as Actor
+            If targetActor
+                Debug.Notification("DAC: Successfully cast to Actor: " + targetActor)
+                
+                ; Ensure actor is loaded before processing
+                While !targetActor.Is3DLoaded()
+                    Debug.Notification("DAC: Waiting for " + targetActor + " to load.")
+                    Utility.Wait(1.0)
+                EndWhile
+                Debug.Notification("DAC: " + targetActor + " is now 3D loaded.")
+                
+                ; Skip player
+                If targetActor != Game.GetPlayer()
+                    Debug.Notification("DAC: Attempting to disable collision for " + targetActor)
+                    Bool success = CassiopeiaPapyrusExtender.DisableCollision(targetActor, False)
+                    If success
+                        Debug.Notification("DAC: DisableCollision succeeded for " + targetActor)
+                    Else
+                        Debug.Notification("DAC: DisableCollision failed for " + targetActor)
+                    EndIf
+                    CassiopeiaPapyrusExtender.UpdateReference3D(targetActor)
                 Else
-                    Debug.Notification("DAC: DisableCollision failed for " + targetActor)
+                    Debug.Notification("DAC: Skipping player actor.")
                 EndIf
-                CassiopeiaPapyrusExtender.UpdateReference3D(targetActor)
             Else
-                Debug.Notification("DAC: Skipping player actor.")
+                Debug.Notification("DAC: Reference at index " + j + " is not an Actor!")
             EndIf
         Else
-            Debug.Notification("DAC: Actor at index " + j + " is None! Possible alias issue.")
+            Debug.Notification("DAC: Reference at index " + j + " is None! Possible alias issue.")
         EndIf
         j += 1
     EndWhile
@@ -87,7 +94,7 @@ EndFunction
 ;---------------------------------------------------
 ; Debugging Function to Manually Dump Alias Contents
 ;---------------------------------------------------
-Function DumpAliasContents() Global
+Function DumpAliasContents()
     Debug.Notification("DAC: Dumping alias contents.")
     Quest myQuest = Game.GetFormFromFile(0x0000080D, "DAC.esm") as Quest  
     If myQuest == None
@@ -106,10 +113,15 @@ Function DumpAliasContents() Global
 
     Int i = 0
     While i < count
-        Actor targetActor = FindNPCs.GetAt(i) as Actor
-        If targetActor
-            Bool isLoaded = targetActor.Is3DLoaded()
-            Debug.Notification("DAC: " + targetActor + " - Is3DLoaded: " + isLoaded)
+        ObjectReference refObj = FindNPCs.GetAt(i)
+        If refObj
+            Actor targetActor = refObj as Actor
+            If targetActor
+                Bool isLoaded = targetActor.Is3DLoaded()
+                Debug.Notification("DAC: " + targetActor + " - Is3DLoaded: " + isLoaded)
+            Else
+                Debug.Notification("DAC: Alias[" + i + "] is not an Actor!")
+            EndIf
         Else
             Debug.Notification("DAC: Alias[" + i + "] is None.")
         EndIf
