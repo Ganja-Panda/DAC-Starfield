@@ -16,49 +16,34 @@ ScriptName DAC:Quests:PlayerLocationChangeHandler Extends ReferenceAlias
 ;======================================================================
 GlobalVariable Property DAC_UpdateGlobal Auto ; Required global variable for alias update
 Bool Property IsOccupantListUpdated = False Auto ; Tracks if the list is already updated
+LocationAlias Property ShipInterior Auto Const Mandatory  ; Set in CK
+LocationAlias Property ShipExterior Auto Const Mandatory  ; Set in CK
 
 ;======================================================================
 ; EVENT HANDLERS
 ;======================================================================
-Event OnEnterShipInterior(ObjectReference akShip)
-    Debug.Notification("DAC: Entered ship. Updating alias.")
-
-    ; Notify DisableActorCollisionOnPlayerShip by toggling DAC_UpdateGlobal
-    If DAC_UpdateGlobal
-        DAC_UpdateGlobal.SetValue(1) ; Signal collision should be disabled
-    EndIf
-
-    UpdateFinderAlias()
-    IsOccupantListUpdated = True
-EndEvent
-
-Event OnExitShipInterior(ObjectReference akShip)
-    Debug.Notification("DAC: Exited ship. Updating alias.")
-
-    ; Notify DisableActorCollisionOnPlayerShip by toggling DAC_UpdateGlobal
-    If DAC_UpdateGlobal
-        DAC_UpdateGlobal.SetValue(0) ; Signal collision should be enabled
-    EndIf
-
-    UpdateFinderAlias()
-    IsOccupantListUpdated = False ; Allow the list to be refreshed on the next entry
-EndEvent
-
-Function UpdateFinderAlias()
-    ; Ensure the alias is valid.
+Event OnLocationChange(Location akOldLoc, Location akNewLoc)
+    Debug.Notification("DAC: Player changed location.")
+    
     Actor PlayerRef = Self.GetActorReference()
     If PlayerRef == None
         Debug.Notification("DAC ERROR: Player Reference Alias is None.")
         Return
     EndIf
-    Debug.Notification("DAC: Updating Player Reference Alias.")
+    
+    ; Ensure we have valid locations to compare
+    Location shipInterior = ShipInterior.GetLocation()
+    Location shipExterior = ShipExterior.GetLocation()
 
-    ; Directly set the alias reference instead of relying on global toggling.
-    ReferenceAlias PlayerAlias = Self as ReferenceAlias
-    If PlayerAlias
-        PlayerAlias.ForceRefTo(PlayerRef)
-        Debug.Notification("DAC: Player Reference Alias successfully updated.")
+    If akNewLoc == shipInterior && akOldLoc == shipExterior
+        Debug.Notification("DAC: Player entered the ship. Disabling collision.")
+        DAC_UpdateGlobal.SetValue(1)  ; Signal collision should be disabled
+        IsOccupantListUpdated = True
+    ElseIf akNewLoc == shipExterior && akOldLoc == shipInterior
+        Debug.Notification("DAC: Player exited the ship. Enabling collision.")
+        DAC_UpdateGlobal.SetValue(0)  ; Signal collision should be enabled
+        IsOccupantListUpdated = False
     Else
-        Debug.Notification("DAC ERROR: PlayerAlias is invalid.")
+        Debug.Notification("DAC: Ignoring location change (Not ship-related).")
     EndIf
-EndFunction
+EndEvent
