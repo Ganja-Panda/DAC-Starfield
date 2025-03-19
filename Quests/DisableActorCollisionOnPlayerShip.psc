@@ -14,27 +14,35 @@ ScriptName DAC:Quests:DisableActorCollisionOnPlayerShip Extends RefCollectionAli
 ;======================================================================
 ; PROPERTY DEFINITIONS
 ;======================================================================
-GlobalVariable Property DAC_UpdateGlobal Auto  ; Required global variable for alias update
-LocationAlias Property playerShipInterior Auto Const Mandatory ; Alias for the player’s ship interior location
+GlobalVariable Property DAC_UpdateGlobal Auto
+LocationAlias Property playerShipInterior Auto Const Mandatory
+
+; Reference to the PlayerLocationChangeHandler instance
+DAC:Quests:PlayerLocationChangeHandler Property PlayerLocationHandler Auto Const Mandatory
 
 ;======================================================================
 ; INITIALIZATION
 ;======================================================================
 Event OnInit()
     Debug.Notification("DAC: DisableActorCollisionOnPlayerShip initializing...")
-    
+
     While !Game.GetPlayer().Is3DLoaded()
         Utility.Wait(1.0)
     EndWhile
-    Utility.Wait(2.0)  ; Ensure all actors are fully loaded
+    Utility.Wait(2.0)
 
     If Self.GetCount() == 0
         Debug.Notification("DAC ERROR: Alias Collection is empty!")
         Return
     EndIf
 
-    RegisterForCustomEvent(DAC:Quests:PlayerLocationChangeHandler, "DAC_PlayerLocationChanged")
-    Debug.Notification("DAC: Initialization complete. Listening for player location changes.")
+    ; Register for the event from the instance
+    If PlayerLocationHandler
+        RegisterForCustomEvent(PlayerLocationHandler, "DAC_PlayerLocationChanged")
+        Debug.Notification("DAC: Registered for player location change event.")
+    Else
+        Debug.Notification("DAC ERROR: PlayerLocationHandler reference is None!")
+    EndIf
 EndEvent
 
 ;======================================================================

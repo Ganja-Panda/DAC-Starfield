@@ -13,8 +13,11 @@ ScriptName DAC:Quests:PlayerLocationChangeHandler Extends ReferenceAlias
 ;======================================================================
 ; PROPERTY DEFINITIONS
 ;======================================================================
-GlobalVariable Property DAC_UpdateGlobal Auto ; Required global variable for alias update
-Bool Property IsOccupantListUpdated = False Auto ; Tracks if the list is already updated
+GlobalVariable Property DAC_UpdateGlobal Auto
+Bool Property IsOccupantListUpdated = False Auto
+
+; Explicitly declare the custom event
+CustomEvent DAC_PlayerLocationChanged
 
 ;======================================================================
 ; EVENT HANDLERS
@@ -35,5 +38,5 @@ EndEvent
 Function FireLocationChangeEvent(Bool bPlayerOnShip)
     Var[] args = new Var[1]
     args[0] = bPlayerOnShip
-    Self.SendCustomEvent("DAC_PlayerLocationChanged", args)
+    SendCustomEvent("DAC_PlayerLocationChanged", args)
 EndFunction
