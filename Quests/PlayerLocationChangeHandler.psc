@@ -1,11 +1,10 @@
 ;======================================================================
 ; SCRIPT: PlayerLocationChangeHandler
 ; AUTHOR: Ganja Panda Creations
-; TITLE: Disable Actor Collision on Player Ship
+; TITLE: Handle Player Location Changes
 ; DESCRIPTION: 
-;    - Tracks player location changes related to ship interiors.
-;    - Updates ReferenceAlias when entering and exiting the ship.
-;    - Identifies which actors leave the ship with the player.
+;    - Tracks player location changes.
+;    - Fires an event when entering or exiting the ship.
 ;
 ;======================================================================
 
@@ -16,34 +15,25 @@ ScriptName DAC:Quests:PlayerLocationChangeHandler Extends ReferenceAlias
 ;======================================================================
 GlobalVariable Property DAC_UpdateGlobal Auto ; Required global variable for alias update
 Bool Property IsOccupantListUpdated = False Auto ; Tracks if the list is already updated
-LocationAlias Property ShipInterior Auto Const Mandatory  ; Set in CK
-LocationAlias Property ShipExterior Auto Const Mandatory  ; Set in CK
 
 ;======================================================================
 ; EVENT HANDLERS
 ;======================================================================
-Event OnLocationChange(Location akOldLoc, Location akNewLoc)
-    Debug.Notification("DAC: Player changed location.")
-    
-    Actor PlayerRef = Self.GetActorReference()
-    If PlayerRef == None
-        Debug.Notification("DAC ERROR: Player Reference Alias is None.")
-        Return
-    EndIf
-    
-    ; Ensure we have valid locations to compare
-    Location shipInteriorLoc = ShipInterior.GetLocation()
-    Location shipExteriorLoc = ShipExterior.GetLocation()
-
-    If akNewLoc == shipInteriorLoc && akOldLoc == shipExteriorLoc
-        Debug.Notification("DAC: Player entered the ship. Disabling collision.")
-        DAC_UpdateGlobal.SetValue(1)  ; Signal collision should be disabled
-        IsOccupantListUpdated = True
-    ElseIf akNewLoc == shipExteriorLoc && akOldLoc == shipInteriorLoc
-        Debug.Notification("DAC: Player exited the ship. Enabling collision.")
-        DAC_UpdateGlobal.SetValue(0)  ; Signal collision should be enabled
-        IsOccupantListUpdated = False
-    Else
-        Debug.Notification("DAC: Ignoring location change (Not ship-related).")
-    EndIf
+Event OnEnterShipInterior(ObjectReference akShip)
+    Debug.Notification("DAC: Entered ship. Notifying collision handler.")
+    FireLocationChangeEvent(True)
 EndEvent
+
+Event OnExitShipInterior(ObjectReference akShip)
+    Debug.Notification("DAC: Exited ship. Notifying collision handler.")
+    FireLocationChangeEvent(False)
+EndEvent
+
+;======================================================================
+; FUNCTION: Fire Custom Event
+;======================================================================
+Function FireLocationChangeEvent(Bool bPlayerOnShip)
+    Var[] args = new Var[1]
+    args[0] = bPlayerOnShip
+    Self.SendCustomEvent("DAC_PlayerLocationChanged", args)
+EndFunction
