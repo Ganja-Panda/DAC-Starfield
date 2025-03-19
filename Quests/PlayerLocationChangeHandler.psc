@@ -38,5 +38,12 @@ EndEvent
 Function FireLocationChangeEvent(Bool bPlayerOnShip)
     Var[] args = new Var[1]
     args[0] = bPlayerOnShip
-    SendCustomEvent("DAC_PlayerLocationChanged", args)
+
+    Debug.Notification("DAC: Firing location change event. Player on ship: " + bPlayerOnShip)
+
+    If Self != None
+        SendCustomEvent("DAC_PlayerLocationChanged", args)
+    Else
+        Debug.Notification("DAC ERROR: Cannot send event, Self reference is None!")
+    EndIf
 EndFunction

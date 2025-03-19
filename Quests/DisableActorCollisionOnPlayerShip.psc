@@ -36,14 +36,20 @@ Event OnInit()
         Return
     EndIf
 
-    ; Register for the event from the instance
+    Int retries = 5
+    While retries > 0 && PlayerLocationHandler == None
+        Utility.Wait(1.0)
+        retries -= 1
+    EndWhile
+
     If PlayerLocationHandler
         RegisterForCustomEvent(PlayerLocationHandler, "DAC_PlayerLocationChanged")
         Debug.Notification("DAC: Registered for player location change event.")
     Else
-        Debug.Notification("DAC ERROR: PlayerLocationHandler reference is None!")
+        Debug.Notification("DAC ERROR: PlayerLocationHandler reference is STILL None after retries!")
     EndIf
 EndEvent
+
 
 ;======================================================================
 ; EVENT: Handle Custom Event from PlayerLocationChangeHandler
@@ -70,10 +76,13 @@ Function UpdateCollisionStates(Bool bPlayerOnShip)
             Else
                 DisableCollision(CrewMember)
             EndIf
+        Else
+            Debug.Notification("DAC WARNING: CrewMember at index " + j + " is None or not loaded!")
         EndIf
         j += 1
     EndWhile
 EndFunction
+
 
 ;======================================================================
 ; FUNCTION: Disable Collision
