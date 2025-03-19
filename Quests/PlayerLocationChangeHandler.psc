@@ -16,8 +16,8 @@ ScriptName DAC:Quests:PlayerLocationChangeHandler Extends ReferenceAlias
 ;======================================================================
 GlobalVariable Property DAC_UpdateGlobal Auto ; Required global variable for alias update
 Bool Property IsOccupantListUpdated = False Auto ; Tracks if the list is already updated
-Location Property ShipInteriorLocation Auto Const Mandatory  ; Set in CK
-Location Property ShipExteriorLocation Auto Const Mandatory  ; Set in CK
+ReferenceAlias Property ShipInterior Auto Const Mandatory  ; Set in CK
+ReferenceAlias Property ShipExterior Auto Const Mandatory  ; Set in CK
 
 ;======================================================================
 ; EVENT HANDLERS
@@ -32,11 +32,14 @@ Event OnLocationChange(Location akOldLoc, Location akNewLoc)
     EndIf
     
     ; Ensure we have valid locations to compare
-    If akNewLoc == ShipInteriorLocation && akOldLoc == ShipExteriorLocation
+    Location shipInteriorLoc = ShipInterior.GetReference().GetCurrentLocation()
+    Location shipExteriorLoc = ShipExterior.GetReference().GetCurrentLocation()
+
+    If akNewLoc == shipInteriorLoc && akOldLoc == shipExteriorLoc
         Debug.Notification("DAC: Player entered the ship. Disabling collision.")
         DAC_UpdateGlobal.SetValue(1)  ; Signal collision should be disabled
         IsOccupantListUpdated = True
-    ElseIf akNewLoc == ShipExteriorLocation && akOldLoc == ShipInteriorLocation
+    ElseIf akNewLoc == shipExteriorLoc && akOldLoc == shipInteriorLoc
         Debug.Notification("DAC: Player exited the ship. Enabling collision.")
         DAC_UpdateGlobal.SetValue(0)  ; Signal collision should be enabled
         IsOccupantListUpdated = False
