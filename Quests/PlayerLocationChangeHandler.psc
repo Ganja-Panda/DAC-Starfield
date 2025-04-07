@@ -21,7 +21,7 @@ Bool Property IsOccupantListUpdated = False Auto ; Tracks if the list is already
 ; EVENT HANDLERS
 ;======================================================================
 Event OnEnterShipInterior(ObjectReference akShip)
-    Debug.Trace("DAC: Entered ship. Updating alias.")
+    Debug.Notification("DAC: Entered ship. Updating alias.")
 
     ; Notify DisableActorCollisionOnPlayerShip by toggling DAC_UpdateGlobal
     If DAC_UpdateGlobal
@@ -33,7 +33,7 @@ Event OnEnterShipInterior(ObjectReference akShip)
 EndEvent
 
 Event OnExitShipInterior(ObjectReference akShip)
-    Debug.Trace("DAC: Exited ship. Updating alias.")
+    Debug.Notification("DAC: Exited ship. Updating alias.")
 
     ; Notify DisableActorCollisionOnPlayerShip by toggling DAC_UpdateGlobal
     If DAC_UpdateGlobal
@@ -48,17 +48,17 @@ Function UpdateFinderAlias()
     ; Ensure the alias is valid.
     Actor PlayerRef = Self.GetActorReference()
     If PlayerRef == None
-        Debug.Trace("DAC ERROR: Player Reference Alias is None.")
+        Debug.Notification("DAC ERROR: Player Reference Alias is None.")
         Return
     EndIf
-    Debug.Trace("DAC: Updating Player Reference Alias.")
+    Debug.Notification("DAC: Updating Player Reference Alias.")
 
     ; Directly set the alias reference instead of relying on global toggling.
     ReferenceAlias PlayerAlias = Self as ReferenceAlias
     If PlayerAlias
         PlayerAlias.ForceRefTo(PlayerRef)
-        Debug.Trace("DAC: Player Reference Alias successfully updated.")
+        Debug.Notification("DAC: Player Reference Alias successfully updated.")
     Else
-        Debug.Trace("DAC ERROR: PlayerAlias is invalid.")
+        Debug.Notification("DAC ERROR: PlayerAlias is invalid.")
     EndIf
 EndFunction
