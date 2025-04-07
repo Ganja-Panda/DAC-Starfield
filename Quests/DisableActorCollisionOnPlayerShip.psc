@@ -98,7 +98,7 @@ Function DisableCollision(Actor akActor)
         CassiopeiaPapyrusExtender.UpdateReference3D(akActor)
         CassiopeiaPapyrusExtender.InitHavok(akActor) ; will be used in Cassiopeia 3.0
         CassiopeiaPapyrusExtender.Set3DUpdateFlag(akActor, 256)  ; Havok flag
-        CassiopeiaPapyrusExtender.ClampToGround(akActor)
+        ;CassiopeiaPapyrusExtender.ClampToGround(akActor)
         Debug.Trace("DAC: Disabled collision for " + akActor)
     EndIf
 EndFunction
@@ -112,7 +112,7 @@ Function EnableCollision(Actor akActor)
         CassiopeiaPapyrusExtender.UpdateReference3D(akActor)
         CassiopeiaPapyrusExtender.InitHavok(akActor)
         CassiopeiaPapyrusExtender.Set3DUpdateFlag(akActor, 256)  ; Havok flag
-        CassiopeiaPapyrusExtender.ClampToGround(akActor)
+        ;CassiopeiaPapyrusExtender.ClampToGround(akActor)
         Debug.Trace("DAC: Enabled collision for " + akActor)
     EndIf
 EndFunction
